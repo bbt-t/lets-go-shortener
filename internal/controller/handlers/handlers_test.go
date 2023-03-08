@@ -96,9 +96,12 @@ func TestURLPostHandler(t *testing.T) {
 			cfg := config.GetDefaultConfig()
 			tc.urls.Cfg = cfg
 			h := RecoverOriginalURLPost(tc.urls)
-			expiration := time.Now().Add(24 * time.Hour)
-			cookieString := "123456"
-			cookie := http.Cookie{Name: "userID", Value: cookieString, Expires: expiration, Path: "/"}
+			cookie := http.Cookie{
+				Name:    "userID",
+				Value:   "123456",
+				Expires: time.Now().Add(24 * time.Hour),
+				Path:    "/",
+			}
 			request.AddCookie(&cookie)
 			h.ServeHTTP(w, request)
 			res := w.Result()
@@ -196,9 +199,12 @@ func TestURLPostJSONHandler(t *testing.T) {
 			cfg := config.GetDefaultConfig()
 			tc.urls.Cfg = cfg
 			h := RecoverOriginalURLPost(tc.urls)
-			expiration := time.Now().Add(24 * time.Hour)
-			cookieString := "123456"
-			cookie := http.Cookie{Name: "userID", Value: cookieString, Expires: expiration, Path: "/"}
+			cookie := http.Cookie{
+				Name:    "userID",
+				Value:   "123456",
+				Expires: time.Now().Add(24 * time.Hour),
+				Path:    "/",
+			}
 			request.AddCookie(&cookie)
 			h.ServeHTTP(w, request)
 			res := w.Result()

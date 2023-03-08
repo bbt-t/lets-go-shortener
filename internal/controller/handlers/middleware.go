@@ -72,10 +72,9 @@ func CookieMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), 400)
 			}
 
-			cookieString := hex.EncodeToString(append(sign, randomID...))
 			cookie := http.Cookie{
 				Name:    "userID",
-				Value:   cookieString,
+				Value:   hex.EncodeToString(append(sign, randomID...)),
 				Expires: time.Now().Add(24 * time.Hour),
 				Path:    "/",
 			}

@@ -29,9 +29,12 @@ func ExampleRecoverOriginalURLPost() {
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
 	w := httptest.NewRecorder()
 
-	expiration := time.Now().Add(24 * time.Hour)
-	cookieString := "user12cookie"
-	cookie := http.Cookie{Name: "userID", Value: cookieString, Expires: expiration, Path: "/"}
+	cookie := http.Cookie{
+		Name:    "userID",
+		Value:   "user12cookie",
+		Expires: time.Now().Add(24 * time.Hour),
+		Path:    "/",
+	}
 	request.AddCookie(&cookie)
 
 	// Serving request using handler.
@@ -67,9 +70,12 @@ func ExampleURLBatch() {
 	request.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
-	expiration := time.Now().Add(24 * time.Hour)
-	cookieString := "user12cookie"
-	cookie := http.Cookie{Name: "userID", Value: cookieString, Expires: expiration, Path: "/"}
+	cookie := http.Cookie{
+		Name:    "userID",
+		Value:   "user12cookie",
+		Expires: time.Now().Add(24 * time.Hour),
+		Path:    "/",
+	}
 	request.AddCookie(&cookie)
 
 	// Serving request using handler.
