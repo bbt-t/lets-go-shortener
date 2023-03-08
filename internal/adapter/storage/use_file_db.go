@@ -13,8 +13,8 @@ import (
 	"github.com/bbt-t/lets-go-shortener/internal/entity"
 )
 
-// FileStorage struct of file storage.
-type FileStorage struct {
+// fileStorage struct of file storage.
+type fileStorage struct {
 	Cfg    config.Config
 	File   *os.File
 	LastID int
@@ -22,20 +22,20 @@ type FileStorage struct {
 }
 
 // GetConfig gets config.
-func (s *FileStorage) GetConfig() config.Config {
+func (s *fileStorage) GetConfig() config.Config {
 	return s.Cfg
 }
 
 // PingDB does nothing.
-func (s *FileStorage) PingDB() error {
+func (s *fileStorage) PingDB() error {
 	return nil
 }
 
-// NewFileStorage creates new file storage.
-func NewFileStorage(cfg config.Config) (*FileStorage, error) {
+// newFileStorage creates new file storage.
+func newFileStorage(cfg config.Config) (*fileStorage, error) {
 	var id int
 
-	s := &FileStorage{Cfg: cfg, Mutex: &sync.Mutex{}}
+	s := &fileStorage{Cfg: cfg, Mutex: &sync.Mutex{}}
 
 	if cfg.StoragePath == "" {
 		return s, errors.New("empty file path")
@@ -64,7 +64,7 @@ func NewFileStorage(cfg config.Config) (*FileStorage, error) {
 }
 
 // CreateShort creates short url from original.
-func (s *FileStorage) CreateShort(userID string, urls ...string) ([]string, error) {
+func (s *fileStorage) CreateShort(userID string, urls ...string) ([]string, error) {
 	var builder strings.Builder
 
 	s.Lock()
@@ -94,7 +94,7 @@ func (s *FileStorage) CreateShort(userID string, urls ...string) ([]string, erro
 }
 
 // GetOriginal gets original url from short.
-func (s *FileStorage) GetOriginal(id string) (string, error) {
+func (s *fileStorage) GetOriginal(id string) (string, error) {
 	var i int
 
 	s.Lock()
@@ -115,13 +115,13 @@ func (s *FileStorage) GetOriginal(id string) (string, error) {
 }
 
 // MarkAsDeleted does nothing.
-func (s *FileStorage) MarkAsDeleted(userID string, ids ...string) error {
+func (s *fileStorage) MarkAsDeleted(userID string, ids ...string) error {
 	// do nothing for file storage.
 	return nil
 }
 
 // GetURLArrayByUser gets history of urls.
-func (s *FileStorage) GetURLArrayByUser(_ string) ([]entity.URLs, error) {
+func (s *fileStorage) GetURLArrayByUser(_ string) ([]entity.URLs, error) {
 	var (
 		id      int
 		allURLs []entity.URLs

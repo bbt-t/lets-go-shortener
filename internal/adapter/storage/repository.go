@@ -20,10 +20,10 @@ type Repository interface {
 // NewStorage creates new storage based on config.
 func NewStorage(cfg config.Config) (Repository, error) {
 	if cfg.StoragePath != "" {
-		return NewFileStorage(cfg)
+		return newFileStorage(cfg)
 	}
 	if cfg.BasePath != "" {
-		return NewDBStorage(cfg)
+		return newDBStorage(cfg)
 	}
 	return NewMapStorage(cfg)
 }

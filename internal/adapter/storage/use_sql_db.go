@@ -14,21 +14,21 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-// DBStorage is storage that uses DB.
-type DBStorage struct {
+// dbStorage is storage that uses DB.
+type dbStorage struct {
 	Cfg    config.Config
 	DB     *sql.DB
 	LastID int
 }
 
 // GetConfig gets config from storage.
-func (s *DBStorage) GetConfig() config.Config {
+func (s *dbStorage) GetConfig() config.Config {
 	return s.Cfg
 }
 
-// NewDBStorage creates new DB storage.
-func NewDBStorage(cfg config.Config) (*DBStorage, error) {
-	s := &DBStorage{Cfg: cfg}
+// newDBStorage creates new DB storage.
+func newDBStorage(cfg config.Config) (*dbStorage, error) {
+	s := &dbStorage{Cfg: cfg}
 
 	db, err := sql.Open("pgx", cfg.BasePath)
 

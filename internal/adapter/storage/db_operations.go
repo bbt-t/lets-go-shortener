@@ -11,14 +11,14 @@ import (
 )
 
 // PingDB check connection to storage.
-func (s *DBStorage) PingDB() error {
+func (s *dbStorage) PingDB() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	return s.DB.PingContext(ctx)
 }
 
 // CreateShort creates short url from original.
-func (s *DBStorage) CreateShort(userID string, urls ...string) ([]string, error) {
+func (s *dbStorage) CreateShort(userID string, urls ...string) ([]string, error) {
 	var isErr409 error
 	result := make([]string, 0, len(urls))
 
@@ -84,7 +84,7 @@ func (s *DBStorage) CreateShort(userID string, urls ...string) ([]string, error)
 }
 
 // GetOriginal gets original url from short.
-func (s *DBStorage) GetOriginal(id string) (string, error) {
+func (s *dbStorage) GetOriginal(id string) (string, error) {
 	var (
 		original string
 		deleted  bool
@@ -112,7 +112,7 @@ func (s *DBStorage) GetOriginal(id string) (string, error) {
 }
 
 // MarkAsDeleted deletes url.
-func (s *DBStorage) MarkAsDeleted(userID string, ids ...string) error {
+func (s *dbStorage) MarkAsDeleted(userID string, ids ...string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
@@ -145,7 +145,7 @@ func (s *DBStorage) MarkAsDeleted(userID string, ids ...string) error {
 }
 
 // GetURLArrayByUser gets all urls.
-func (s *DBStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
+func (s *dbStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
 	var history []entity.URLs
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)

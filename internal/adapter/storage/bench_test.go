@@ -17,7 +17,7 @@ func BenchmarkDBStorage(b *testing.B) {
 	}
 
 	cfg.DBMigrationPath = "file://../../migrations"
-	s, err := NewDBStorage(cfg)
+	s, err := newDBStorage(cfg)
 	if err != nil {
 		log.Fatalln("Failed get storage: ", err)
 	}
