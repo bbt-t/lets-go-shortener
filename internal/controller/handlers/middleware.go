@@ -92,7 +92,6 @@ func GzipRequest(next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-
 		// переменная r будет читать входящие данные и распаковывать их.
 		reader, err := gzip.NewReader(r.Body)
 		if err != nil {
@@ -100,7 +99,9 @@ func GzipRequest(next http.Handler) http.Handler {
 			return
 		}
 		defer reader.Close()
+
 		r.Body = reader
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -121,6 +122,9 @@ func GzipHandle(next http.Handler) http.Handler {
 		defer gz.Close()
 
 		w.Header().Set("Content-Encoding", "gzip")
-		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
+		next.ServeHTTP(
+			gzipWriter{ResponseWriter: w, Writer: gz},
+			r,
+		)
 	})
 }

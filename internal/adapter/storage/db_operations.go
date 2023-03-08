@@ -32,7 +32,10 @@ func (s *DBStorage) CreateShort(userID string, urls ...string) ([]string, error)
 		return result, err
 	}
 
-	stmt, err := tx.PrepareContext(ctx, "INSERT INTO items (id, url, cookie) VALUES ($1, $2, $3)")
+	stmt, err := tx.PrepareContext(
+		ctx,
+		"INSERT INTO items (id, url, cookie) VALUES ($1, $2, $3)",
+	)
 	if err != nil {
 		return result, err
 	}
@@ -41,7 +44,11 @@ func (s *DBStorage) CreateShort(userID string, urls ...string) ([]string, error)
 	for _, url := range urls {
 		var isAdded bool
 
-		rows, err := s.DB.QueryContext(ctx, "SELECT id FROM items WHERE url = $1 LIMIT 1", url)
+		rows, err := s.DB.QueryContext(
+			ctx,
+			"SELECT id FROM items WHERE url = $1 LIMIT 1",
+			url,
+		)
 		if err != nil {
 			return result, err
 		}
@@ -52,9 +59,7 @@ func (s *DBStorage) CreateShort(userID string, urls ...string) ([]string, error)
 			if err != nil {
 				return result, err
 			}
-			isErr409 = ErrExists
-			isAdded = true
-			result = append(result, id)
+			isErr409, isAdded, result = ErrExists, true, append(result, id)
 		}
 
 		if err := rows.Err(); err != nil {
@@ -80,14 +85,17 @@ func (s *DBStorage) CreateShort(userID string, urls ...string) ([]string, error)
 
 // GetOriginal gets original url from short.
 func (s *DBStorage) GetOriginal(id string) (string, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-
-	row := s.DB.QueryRowContext(ctx, "SELECT url, deleted FROM items WHERE id=$1 LIMIT 1", id)
-
 	var (
 		original string
 		deleted  bool
+	)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	row := s.DB.QueryRowContext(
+		ctx,
+		"SELECT url, deleted FROM items WHERE id=$1 LIMIT 1",
+		id,
 	)
 	err := row.Scan(&original, &deleted)
 
@@ -115,7 +123,10 @@ func (s *DBStorage) MarkAsDeleted(userID string, ids ...string) error {
 		return err
 	}
 
-	stmt, err := tx.PrepareContext(ctx, "UPDATE items SET deleted = true WHERE id = $1 AND cookie = $2")
+	stmt, err := tx.PrepareContext(
+		ctx,
+		"UPDATE items SET deleted = true WHERE id = $1 AND cookie = $2",
+	)
 	if err != nil {
 		return err
 	}
@@ -140,7 +151,11 @@ func (s *DBStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	rows, err := s.DB.QueryContext(ctx, "SELECT id, url FROM items WHERE cookie=$1", userID)
+	rows, err := s.DB.QueryContext(
+		ctx,
+		"SELECT id, url FROM items WHERE cookie=$1",
+		userID,
+	)
 
 	if err != nil {
 		return history, err
@@ -157,13 +172,15 @@ func (s *DBStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
 			return history, err
 		}
 
-		history = append(history, entity.URLs{
-			ShortURL:    id,
-			OriginalURL: original,
-		})
+		history = append(
+			history,
+			entity.URLs{
+				ShortURL:    id,
+				OriginalURL: original,
+			},
+		)
 
 	}
-
 	if err := rows.Err(); err != nil {
 		return history, err
 	}

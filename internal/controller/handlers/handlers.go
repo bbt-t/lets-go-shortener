@@ -16,8 +16,7 @@ import (
 // Ping DataBase.
 func Ping(s storage.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		err := s.PingDB()
-		if err != nil {
+		if err := s.PingDB(); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		w.WriteHeader(http.StatusOK)
@@ -42,15 +41,12 @@ func DeleteURL(s storage.Repository) http.HandlerFunc {
 		}
 
 		var toDelete []string
-		err = json.Unmarshal(resBody, &toDelete)
-		if err != nil {
+		if err = json.Unmarshal(resBody, &toDelete); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		err = s.MarkAsDeleted(userID, toDelete...)
-
-		if err != nil {
+		if err = s.MarkAsDeleted(userID, toDelete...); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -62,6 +58,11 @@ func DeleteURL(s storage.Repository) http.HandlerFunc {
 func URLBatch(s storage.Repository) http.HandlerFunc {
 	cfg := s.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
+		var (
+			reqURLs, respURLs []entity.URLBatch
+			urls              []string
+		)
+
 		userCookie, err := r.Cookie("userID")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -76,16 +77,10 @@ func URLBatch(s storage.Repository) http.HandlerFunc {
 			return
 		}
 
-		var reqURLs, respURLs []entity.URLBatch
-
-		err = json.Unmarshal(resBody, &reqURLs)
-
-		if err != nil {
+		if err = json.Unmarshal(resBody, &reqURLs); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
-		var urls []string
 
 		for _, v := range reqURLs {
 			urls = append(urls, v.OriginalURL)
@@ -98,7 +93,13 @@ func URLBatch(s storage.Repository) http.HandlerFunc {
 		}
 
 		for i, v := range reqURLs {
-			respURLs = append(respURLs, entity.URLBatch{CorrelationID: v.CorrelationID, ShortURL: cfg.BaseURL + "/" + res[i]})
+			respURLs = append(
+				respURLs,
+				entity.URLBatch{
+					CorrelationID: v.CorrelationID,
+					ShortURL:      cfg.BaseURL + "/" + res[i], // не хочу импортировать fmt/strings/bytes
+				},
+			)
 		}
 
 		b, err := json.Marshal(respURLs)
@@ -127,7 +128,6 @@ func RecoverAllURL(s storage.Repository) http.HandlerFunc {
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
-
 		if len(history) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return
@@ -150,18 +150,16 @@ func RecoverOriginalURL(s storage.Repository) http.HandlerFunc {
 			http.Error(w, "missing id parameter", http.StatusBadRequest)
 			return
 		}
-		url, err := s.GetOriginal(id)
 
+		url, err := s.GetOriginal(id)
 		if errors.Is(err, storage.ErrDeleted) {
 			http.Error(w, "url is deleted", http.StatusGone)
 			return
 		}
-
 		if errors.Is(err, storage.ErrNotFound) {
 			http.Error(w, "not found", http.StatusNotFound)
 			return
 		}
-
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -176,12 +174,16 @@ func RecoverOriginalURL(s storage.Repository) http.HandlerFunc {
 func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 	cfg := s.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
+		var reqJSON entity.ReqJSON
+
 		userCookie, err := r.Cookie("userID")
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
 		}
+
 		userID := userCookie.Value
+
 		resBody, err := io.ReadAll(r.Body)
 		defer r.Body.Close()
 		if err != nil || string(resBody) == "" {
@@ -191,29 +193,25 @@ func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 		switch r.Header.Get("Content-Type") {
 		case "application/json":
 			{
-				var reqJSON entity.ReqJSON
-
-				err := json.Unmarshal(resBody, &reqJSON)
-				if err != nil {
+				if err := json.Unmarshal(resBody, &reqJSON); err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)
 					return
 				}
-				res, err2 := s.CreateShort(userID, reqJSON.URL)
 
-				if err2 != nil && !errors.Is(err2, storage.ErrExists) {
-					http.Error(w, err2.Error(), http.StatusBadRequest)
+				res, errCreate := s.CreateShort(userID, reqJSON.URL)
+				if errCreate != nil && !errors.Is(errCreate, storage.ErrExists) {
+					http.Error(w, errCreate.Error(), http.StatusBadRequest)
 					return
 				}
 
 				respJSON, err := json.Marshal(entity.RespJSON{Result: cfg.BaseURL + "/" + res[0]})
-
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
 
 				w.Header().Set("Content-Type", "application/json")
-				if errors.Is(err2, storage.ErrExists) {
+				if errors.Is(errCreate, storage.ErrExists) {
 					w.WriteHeader(http.StatusConflict)
 				} else {
 					w.WriteHeader(http.StatusCreated)
@@ -222,21 +220,19 @@ func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 			}
 		default:
 			{
-				res, err2 := s.CreateShort(userID, string(resBody))
-				if err2 != nil && !errors.Is(err2, storage.ErrExists) {
-					http.Error(w, err2.Error(), 400)
+				res, errCreate := s.CreateShort(userID, string(resBody))
+				if errCreate != nil && !errors.Is(errCreate, storage.ErrExists) {
+					http.Error(w, errCreate.Error(), 400)
 					return
 				}
 				w.Header().Set("Content-Type", "text/plain; charset=utf-8")
-				if errors.Is(err2, storage.ErrExists) {
+				if errors.Is(errCreate, storage.ErrExists) {
 					w.WriteHeader(http.StatusConflict)
 				} else {
 					w.WriteHeader(http.StatusCreated)
 				}
 				w.Write([]byte(cfg.BaseURL + "/" + res[0]))
 			}
-
 		}
-
 	}
 }

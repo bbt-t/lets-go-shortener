@@ -25,6 +25,5 @@ func NewStorage(cfg config.Config) (Repository, error) {
 	if cfg.BasePath != "" {
 		return NewDBStorage(cfg)
 	}
-
 	return NewMapStorage(cfg)
 }

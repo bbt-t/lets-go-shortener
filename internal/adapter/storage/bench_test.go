@@ -27,10 +27,16 @@ func BenchmarkDBStorage(b *testing.B) {
 
 		for i := 0; i < b.N; i++ {
 			b.StopTimer()
-			url := fmt.Sprintf("https://random%v/random%v", rand.Intn(50000), rand.Intn(20000))
+			url := fmt.Sprintf(
+				"https://random%v/random%v",
+				rand.Intn(50000),
+				rand.Intn(20000),
+			)
 			userID := fmt.Sprint(rand.Intn(200))
 			b.StartTimer()
-			s.CreateShort(userID, url)
+			if _, err := s.CreateShort(userID, url); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 
@@ -41,7 +47,9 @@ func BenchmarkDBStorage(b *testing.B) {
 			id := fmt.Sprint(rand.Intn(s.LastID))
 			b.StartTimer()
 
-			s.GetOriginal(id)
+			if _, err := s.GetOriginal(id); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 
@@ -53,7 +61,9 @@ func BenchmarkDBStorage(b *testing.B) {
 			userID := fmt.Sprint(rand.Intn(200))
 			b.StartTimer()
 
-			s.MarkAsDeleted(userID, id)
+			if err := s.MarkAsDeleted(userID, id); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 
@@ -64,7 +74,9 @@ func BenchmarkDBStorage(b *testing.B) {
 			userID := fmt.Sprint(rand.Intn(200))
 			b.StartTimer()
 
-			s.GetURLArrayByUser(userID)
+			if _, err := s.GetURLArrayByUser(userID); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 
@@ -82,10 +94,17 @@ func BenchmarkMapStorage(b *testing.B) {
 
 		for i := 0; i < b.N; i++ {
 			b.StopTimer()
-			url := fmt.Sprintf("https://random%v/random%v", rand.Intn(5000), rand.Intn(2000))
+			url := fmt.Sprintf(
+				"https://random%v/random%v",
+				rand.Intn(5000),
+				rand.Intn(2000),
+			)
 			userID := fmt.Sprint(rand.Intn(200))
 			b.StartTimer()
-			s.CreateShort(userID, url)
+
+			if _, err := s.CreateShort(userID, url); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 
@@ -96,7 +115,9 @@ func BenchmarkMapStorage(b *testing.B) {
 			id := fmt.Sprint(rand.Intn(len(s.Locations)))
 			b.StartTimer()
 
-			s.GetOriginal(id)
+			if _, err := s.GetOriginal(id); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 
@@ -108,7 +129,9 @@ func BenchmarkMapStorage(b *testing.B) {
 			userID := fmt.Sprint(rand.Intn(200))
 			b.StartTimer()
 
-			s.MarkAsDeleted(userID, id)
+			if err := s.MarkAsDeleted(userID, id); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 
@@ -119,7 +142,9 @@ func BenchmarkMapStorage(b *testing.B) {
 			userID := fmt.Sprint(rand.Intn(200))
 			b.StartTimer()
 
-			s.GetURLArrayByUser(userID)
+			if _, err := s.GetURLArrayByUser(userID); err != nil {
+				log.Println(err)
+			}
 		}
 	})
 

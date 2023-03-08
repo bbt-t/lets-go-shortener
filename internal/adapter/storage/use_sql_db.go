@@ -73,18 +73,17 @@ func MigrateUP(db *sql.DB, cfg config.Config) error {
 
 	m, err := migrate.NewWithDatabaseInstance(
 		cfg.DBMigrationPath,
-		"pgx", driver)
+		"pgx",
+		driver,
+	)
 
 	if err != nil {
 		log.Printf("Failed create migration instance: %v\n", err)
 		return err
 	}
-
-	err = m.Up()
-	if err != nil && err != migrate.ErrNoChange {
+	if err = m.Up(); err != nil && err != migrate.ErrNoChange {
 		log.Fatal("Failed migrate: ", err)
 		return err
 	}
-
 	return nil
 }

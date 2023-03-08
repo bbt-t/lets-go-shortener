@@ -20,14 +20,10 @@ type MapStorage struct {
 
 // NewMapStorage creates new map storage.
 func NewMapStorage(cfg config.Config) (*MapStorage, error) {
-	loc := make(map[string]string)
-	users := make(map[string][]string)
-	deleted := make(map[string]bool)
-
 	return &MapStorage{
-		Locations: loc,
-		Users:     users,
-		Deleted:   deleted,
+		Locations: make(map[string]string),
+		Users:     make(map[string][]string),
+		Deleted:   make(map[string]bool),
 		Cfg:       cfg,
 		Mutex:     &sync.Mutex{},
 	}, nil
@@ -67,16 +63,13 @@ func (s *MapStorage) CreateShort(userID string, urls ...string) ([]string, error
 				break
 			}
 		}
-
 		result = append(result, newID)
 		if foundThisURL {
 			continue
 		}
 
-		s.Locations[newID] = longURL
-		s.Users[userID] = append(s.Users[userID], newID)
+		s.Locations[newID], s.Users[userID] = longURL, append(s.Users[userID], newID)
 	}
-
 	return result, err
 }
 
@@ -100,10 +93,9 @@ func (s *MapStorage) GetOriginal(id string) (string, error) {
 func (s *MapStorage) MarkAsDeleted(userID string, ids ...string) error {
 	s.Lock()
 	defer s.Unlock()
-	canDelete := s.Users[userID]
 
 	for _, id := range ids {
-		for _, can := range canDelete {
+		for _, can := range s.Users[userID] {
 			if id == can {
 				s.Deleted[id] = true
 				break

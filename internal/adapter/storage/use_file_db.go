@@ -33,25 +33,27 @@ func (s *FileStorage) PingDB() error {
 
 // NewFileStorage creates new file storage.
 func NewFileStorage(cfg config.Config) (*FileStorage, error) {
+	var id int
+
 	s := &FileStorage{Cfg: cfg, Mutex: &sync.Mutex{}}
 
 	if cfg.StoragePath == "" {
 		return s, errors.New("empty file path")
 	}
-
-	file, err := os.OpenFile(cfg.StoragePath, os.O_RDWR|os.O_APPEND|os.O_CREATE|os.O_SYNC, 0777)
+	file, err := os.OpenFile(
+		cfg.StoragePath,
+		os.O_RDWR|os.O_APPEND|os.O_CREATE|os.O_SYNC,
+		0700,
+	)
 	if err != nil {
 		return s, err
 	}
 
 	s.File = file
-
 	scanner := bufio.NewScanner(file)
-	id := 0
 	for scanner.Scan() {
 		id++
 	}
-
 	if err := scanner.Err(); err != nil {
 		return s, err
 	}
@@ -93,13 +95,15 @@ func (s *FileStorage) CreateShort(userID string, urls ...string) ([]string, erro
 
 // GetOriginal gets original url from short.
 func (s *FileStorage) GetOriginal(id string) (string, error) {
+	var i int
+
 	s.Lock()
 	defer s.Unlock()
 
 	s.File.Seek(0, io.SeekStart)
 
 	scanner := bufio.NewScanner(s.File)
-	i := 0
+
 	for scanner.Scan() {
 		i++
 		original := scanner.Text()
@@ -107,7 +111,6 @@ func (s *FileStorage) GetOriginal(id string) (string, error) {
 			return original, scanner.Err()
 		}
 	}
-
 	return "", ErrNotFound
 }
 
@@ -119,10 +122,12 @@ func (s *FileStorage) MarkAsDeleted(userID string, ids ...string) error {
 
 // GetURLArrayByUser gets history of urls.
 func (s *FileStorage) GetURLArrayByUser(_ string) ([]entity.URLs, error) {
-	var allURLs []entity.URLs
+	var (
+		id      int
+		allURLs []entity.URLs
+	)
 
 	scanner := bufio.NewScanner(s.File)
-	id := 0
 	for scanner.Scan() {
 		id++
 		original := scanner.Text()
@@ -133,6 +138,5 @@ func (s *FileStorage) GetURLArrayByUser(_ string) ([]entity.URLs, error) {
 			},
 		)
 	}
-
 	return allURLs, scanner.Err()
 }
