@@ -7,8 +7,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -59,12 +59,11 @@ func CookieMiddleware(next http.Handler) http.Handler {
 			h.Write(id)
 			sign := h.Sum(nil)
 			if !hmac.Equal(signSrc, sign) {
-				fmt.Println("failed to verify")
+				log.Println("failed to verify")
 				ok = errors.New("failed to verify")
 			}
 		}
 		if ok != nil {
-			fmt.Println("Generating new cookie")
 			randomID, err := generateRandom(8)
 			h := hmac.New(sha256.New, secretKey)
 			h.Write(randomID)
@@ -73,11 +72,7 @@ func CookieMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), 400)
 			}
 
-			fmt.Println("Sign:", sign)
-			fmt.Println("ID:", randomID)
-
 			cookieString := hex.EncodeToString(append(sign, randomID...))
-			fmt.Println("New user cookie is:", cookieString)
 			cookie := http.Cookie{
 				Name:    "userID",
 				Value:   cookieString,
@@ -102,7 +97,7 @@ func GzipRequest(next http.Handler) http.Handler {
 		// переменная r будет читать входящие данные и распаковывать их.
 		reader, err := gzip.NewReader(r.Body)
 		if err != nil {
-			fmt.Println(err)
+			log.Println(err)
 			return
 		}
 		defer reader.Close()

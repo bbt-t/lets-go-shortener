@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -44,8 +43,8 @@ func ExampleRecoverOriginalURLPost() {
 	resBody, err := io.ReadAll(res.Body)
 	defer res.Body.Close()
 
-	fmt.Printf("Short OriginalURL is: %s\n", resBody)
-	fmt.Printf("Now in storage: %s\n", s.Locations)
+	log.Printf("Short OriginalURL is: %s\n", resBody)
+	log.Printf("Now in storage: %s\n", s.Locations)
 }
 
 func ExampleURLBatch() {
@@ -82,8 +81,8 @@ func ExampleURLBatch() {
 	resBody, err := io.ReadAll(res.Body)
 	defer res.Body.Close()
 
-	fmt.Printf("Short OriginalURL is: %s\n", resBody)
-	fmt.Printf("Now in storage: %s\n", s.Locations)
+	log.Printf("Short OriginalURL is: %s\n", resBody)
+	log.Printf("Now in storage: %s\n", s.Locations)
 }
 
 func ExampleRecoverAllURL() {
@@ -133,7 +132,7 @@ func ExampleRecoverAllURL() {
 	resBody, err := io.ReadAll(res.Body)
 	defer res.Body.Close()
 
-	fmt.Printf("URLs history is: %s\n", resBody)
+	log.Printf("URLs history is: %s\n", resBody)
 }
 
 func ExampleDeleteURL() {
