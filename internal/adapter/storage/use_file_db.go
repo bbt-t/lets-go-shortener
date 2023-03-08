@@ -63,14 +63,14 @@ func NewFileStorage(cfg config.Config) (*FileStorage, error) {
 
 // CreateShort creates short url from original.
 func (s *FileStorage) CreateShort(userID string, urls ...string) ([]string, error) {
+	var builder strings.Builder
+
 	s.Lock()
 	defer s.Unlock()
 
 	s.File.Seek(2, io.SeekEnd)
 
 	result := make([]string, 0, len(urls))
-
-	var builder strings.Builder
 
 	for _, original := range urls {
 		builder.WriteString(original)
@@ -119,7 +119,6 @@ func (s *FileStorage) MarkAsDeleted(userID string, ids ...string) error {
 
 // GetURLArrayByUser gets history of urls.
 func (s *FileStorage) GetURLArrayByUser(_ string) ([]entity.URLs, error) {
-	// return all urls.
 	var allURLs []entity.URLs
 
 	scanner := bufio.NewScanner(s.File)

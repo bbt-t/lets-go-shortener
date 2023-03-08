@@ -76,8 +76,7 @@ func URLBatch(s storage.Repository) http.HandlerFunc {
 			return
 		}
 
-		var reqURLs []entity.URLBatch
-		var respURLs []entity.URLBatch
+		var reqURLs, respURLs []entity.URLBatch
 
 		err = json.Unmarshal(resBody, &reqURLs)
 
@@ -193,6 +192,7 @@ func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 		case "application/json":
 			{
 				var reqJSON entity.ReqJSON
+
 				err := json.Unmarshal(resBody, &reqJSON)
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusBadRequest)

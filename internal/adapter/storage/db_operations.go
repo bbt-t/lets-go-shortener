@@ -40,12 +40,14 @@ func (s *DBStorage) CreateShort(userID string, urls ...string) ([]string, error)
 
 	for _, url := range urls {
 		var isAdded bool
+
 		rows, err := s.DB.QueryContext(ctx, "SELECT id FROM items WHERE url = $1 LIMIT 1", url)
 		if err != nil {
 			return result, err
 		}
 		for rows.Next() {
 			var id string
+
 			err = rows.Scan(&id)
 			if err != nil {
 				return result, err
@@ -83,23 +85,21 @@ func (s *DBStorage) GetOriginal(id string) (string, error) {
 
 	row := s.DB.QueryRowContext(ctx, "SELECT url, deleted FROM items WHERE id=$1 LIMIT 1", id)
 
-	var original string
-	var deleted bool
-
+	var (
+		original string
+		deleted  bool
+	)
 	err := row.Scan(&original, &deleted)
 
 	if errors.Is(err, sql.ErrNoRows) {
 		return "", ErrNotFound
 	}
-
 	if err := row.Err(); err != nil {
 		return "", err
 	}
-
 	if deleted {
 		return "", ErrDeleted
 	}
-
 	return original, nil
 }
 
@@ -130,7 +130,6 @@ func (s *DBStorage) MarkAsDeleted(userID string, ids ...string) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 
@@ -150,8 +149,8 @@ func (s *DBStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
 	defer rows.Close()
 
 	for rows.Next() {
-		var id string
-		var original string
+		var id, original string
+
 		err = rows.Scan(&id, &original)
 
 		if err != nil {

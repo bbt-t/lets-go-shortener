@@ -10,7 +10,7 @@ import (
 )
 
 func BenchmarkDBStorage(b *testing.B) {
-	var cfg = config.GetConfig()
+	cfg := config.GetConfig()
 
 	if cfg.StoragePath == "" {
 		return
@@ -71,7 +71,7 @@ func BenchmarkDBStorage(b *testing.B) {
 }
 
 func BenchmarkMapStorage(b *testing.B) {
-	var cfg = config.GetConfig()
+	cfg := config.GetConfig()
 	s, err := NewMapStorage(cfg)
 	if err != nil {
 		log.Fatalln("Failed get storage: ", err)
