@@ -13,14 +13,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-// HTTP-server struct.
-
+// server HTTP-server struct.
 type server struct {
 	httpServer *http.Server
 }
 
-// Initializing a new router.
-
+// newHTTPServer Initializing a new router.
 func newHTTPServer(address string, s storage.Repository) *server {
 	router := chi.NewRouter()
 
@@ -51,27 +49,23 @@ func newHTTPServer(address string, s storage.Repository) *server {
 	}
 }
 
-// http-server start.
-
+// UP http-server start.
 func (s *server) UP() error {
 	return s.httpServer.ListenAndServe()
 }
 
-// http-server stop.
-
+// Stop http-server stop.
 func (s *server) Stop(ctx context.Context) error {
 	return s.httpServer.Shutdown(ctx)
 }
 
-// Router interface.
-
+// HTTPServer - Router interface.
 type HTTPServer interface {
 	UP() error
 	Stop(ctx context.Context) error
 }
 
-// Make router.
-
+// NewRouter - make router.
 func NewRouter(address string, storage storage.Repository) HTTPServer {
 	return newHTTPServer(address, storage)
 }
