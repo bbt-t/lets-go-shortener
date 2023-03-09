@@ -1,3 +1,5 @@
+// Package that creates Router and interface.
+
 package controller
 
 import (
@@ -49,17 +51,15 @@ func newHTTPServer(address string, s storage.Repository) *server {
 	}
 }
 
+// http-server start.
+
 func (s *server) UP() error {
-	/*
-		http-server start.
-	*/
 	return s.httpServer.ListenAndServe()
 }
 
+// http-server stop.
+
 func (s *server) Stop(ctx context.Context) error {
-	/*
-		http-server stop.
-	*/
 	return s.httpServer.Shutdown(ctx)
 }
 
