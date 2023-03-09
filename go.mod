@@ -3,7 +3,7 @@ module github.com/bbt-t/lets-go-shortener
 go 1.20
 
 require (
-	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/golang-migrate/migrate/v4 v4.15.2
 	github.com/jackc/pgx/v5 v5.2.0
 	github.com/stretchr/testify v1.8.2
