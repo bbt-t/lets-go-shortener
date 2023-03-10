@@ -12,7 +12,7 @@ import (
 	"github.com/bbt-t/lets-go-shortener/internal/config"
 )
 
-func ExampleRecoverOriginalURLPost() {
+func ExamplerecoverOriginalURLPost() {
 	// data.
 	body := "https://yandex.ru"
 	// Generating handler.
@@ -91,7 +91,7 @@ func ExampleURLBatch() {
 	log.Printf("Now in storage: %s\n", s.Locations)
 }
 
-func ExampleRecoverAllURL() {
+func ExamplerecoverAllURL() {
 	// data.
 	userID := "user12cookie"
 	// generating storage.
@@ -141,7 +141,7 @@ func ExampleRecoverAllURL() {
 	log.Printf("URLs history is: %s\n", resBody)
 }
 
-func ExampleDeleteURL() {
+func ExampledeleteURL() {
 	// data.
 	data, userID := `["1"]`, "user12cookie"
 	// generating storage.
