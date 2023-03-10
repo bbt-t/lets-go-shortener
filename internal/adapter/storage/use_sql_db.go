@@ -14,21 +14,21 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
-// dbStorage is storage that uses DB.
+// dbStorage is storage that uses db.
 type dbStorage struct {
-	Cfg    config.Config
-	DB     *sql.DB
-	LastID int
+	cfg    config.Config
+	db     *sql.DB
+	lastID int
 }
 
 // GetConfig gets config from storage.
 func (s *dbStorage) GetConfig() config.Config {
-	return s.Cfg
+	return s.cfg
 }
 
-// newDBStorage creates new DB storage.
+// newDBStorage creates new db storage.
 func newDBStorage(cfg config.Config) (*dbStorage, error) {
-	s := &dbStorage{Cfg: cfg}
+	s := &dbStorage{cfg: cfg}
 
 	db, err := sql.Open("pgx", cfg.BasePath)
 
@@ -42,13 +42,13 @@ func newDBStorage(cfg config.Config) (*dbStorage, error) {
 	err = MigrateUP(db, cfg)
 
 	if err != nil {
-		log.Fatalln("Failed migrate DB: ", err)
+		log.Fatalln("Failed migrate db: ", err)
 		return s, err
 	}
 
 	row := db.QueryRowContext(ctx, "SELECT COUNT(*) FROM items")
 
-	err = row.Scan(&s.LastID)
+	err = row.Scan(&s.lastID)
 
 	if err != nil {
 		return s, err
@@ -59,12 +59,12 @@ func newDBStorage(cfg config.Config) (*dbStorage, error) {
 		return s, err
 	}
 
-	s.DB = db
+	s.db = db
 
 	return s, nil
 }
 
-// MigrateUP DB migrations.
+// MigrateUP db migrations.
 func MigrateUP(db *sql.DB, cfg config.Config) error {
 	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {

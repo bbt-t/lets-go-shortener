@@ -14,7 +14,7 @@ import (
 func (s *dbStorage) PingDB() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	return s.DB.PingContext(ctx)
+	return s.db.PingContext(ctx)
 }
 
 // CreateShort creates short url from original.
@@ -25,7 +25,7 @@ func (s *dbStorage) CreateShort(userID string, urls ...string) ([]string, error)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	tx, err := s.DB.Begin()
+	tx, err := s.db.Begin()
 	defer tx.Rollback()
 
 	if err != nil {
@@ -44,7 +44,7 @@ func (s *dbStorage) CreateShort(userID string, urls ...string) ([]string, error)
 	for _, url := range urls {
 		var isAdded bool
 
-		rows, err := s.DB.QueryContext(
+		rows, err := s.db.QueryContext(
 			ctx,
 			"SELECT id FROM items WHERE url = $1 LIMIT 1",
 			url,
@@ -66,8 +66,8 @@ func (s *dbStorage) CreateShort(userID string, urls ...string) ([]string, error)
 			return result, err
 		}
 		if !isAdded {
-			s.LastID++
-			newID := fmt.Sprint(s.LastID)
+			s.lastID++
+			newID := fmt.Sprint(s.lastID)
 			if _, err := stmt.ExecContext(ctx, newID, url, userID); err != nil {
 				return result, err
 			}
@@ -92,7 +92,7 @@ func (s *dbStorage) GetOriginal(id string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	row := s.DB.QueryRowContext(
+	row := s.db.QueryRowContext(
 		ctx,
 		"SELECT url, deleted FROM items WHERE id=$1 LIMIT 1",
 		id,
@@ -116,7 +116,7 @@ func (s *dbStorage) MarkAsDeleted(userID string, ids ...string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	tx, err := s.DB.Begin()
+	tx, err := s.db.Begin()
 	defer tx.Rollback()
 
 	if err != nil {
@@ -151,7 +151,7 @@ func (s *dbStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	rows, err := s.DB.QueryContext(
+	rows, err := s.db.QueryContext(
 		ctx,
 		"SELECT id, url FROM items WHERE cookie=$1",
 		userID,

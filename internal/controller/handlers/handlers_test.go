@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestURLPostHandler(t *testing.T) {
+func TestRecoverOriginalURLPost(t *testing.T) {
 	type want struct {
 		code     int
 		response string
@@ -95,7 +95,7 @@ func TestURLPostHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			cfg := config.GetDefaultConfig()
 			tc.urls.Cfg = cfg
-			h := RecoverOriginalURLPost(tc.urls)
+			h := recoverOriginalURLPost(tc.urls)
 			cookie := http.Cookie{
 				Name:    "userID",
 				Value:   "123456",
@@ -198,7 +198,7 @@ func TestURLPostJSONHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			cfg := config.GetDefaultConfig()
 			tc.urls.Cfg = cfg
-			h := RecoverOriginalURLPost(tc.urls)
+			h := recoverOriginalURLPost(tc.urls)
 			cookie := http.Cookie{
 				Name:    "userID",
 				Value:   "123456",
@@ -269,7 +269,7 @@ func TestURLGetHandler(t *testing.T) {
 			w := httptest.NewRecorder()
 			cfg := config.GetDefaultConfig()
 			tc.urls.Cfg = cfg
-			h := RecoverOriginalURL(tc.urls)
+			h := recoverOriginalURL(tc.urls)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			assert.Equal(t, tc.want.code, res.StatusCode)

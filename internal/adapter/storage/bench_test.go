@@ -44,7 +44,7 @@ func BenchmarkDBStorage(b *testing.B) {
 
 		for i := 0; i < b.N; i++ {
 			b.StopTimer()
-			id := fmt.Sprint(rand.Intn(s.LastID))
+			id := fmt.Sprint(rand.Intn(s.lastID))
 			b.StartTimer()
 
 			if _, err := s.GetOriginal(id); err != nil {
@@ -57,7 +57,7 @@ func BenchmarkDBStorage(b *testing.B) {
 
 		for i := 0; i < b.N; i++ {
 			b.StopTimer()
-			id := fmt.Sprint(rand.Intn(s.LastID))
+			id := fmt.Sprint(rand.Intn(s.lastID))
 			userID := fmt.Sprint(rand.Intn(200))
 			b.StartTimer()
 

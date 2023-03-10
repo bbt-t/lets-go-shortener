@@ -13,8 +13,8 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// Ping DataBase.
-func Ping(s storage.Repository) http.HandlerFunc {
+// pingDB Ping database.
+func pingDB(s storage.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := s.PingDB(); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -23,8 +23,8 @@ func Ping(s storage.Repository) http.HandlerFunc {
 	}
 }
 
-// DeleteURL deletes url from storage.
-func DeleteURL(s storage.Repository) http.HandlerFunc {
+// deleteURL deletes url from storage.
+func deleteURL(s storage.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userCookie, err := r.Cookie("userID")
 		if err != nil {
@@ -54,8 +54,8 @@ func DeleteURL(s storage.Repository) http.HandlerFunc {
 	}
 }
 
-// URLBatch shortens batch of urls in single request.
-func URLBatch(s storage.Repository) http.HandlerFunc {
+// buildURLBatch shortens batch of urls in single request.
+func buildURLBatch(s storage.Repository) http.HandlerFunc {
 	cfg := s.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
@@ -114,8 +114,8 @@ func URLBatch(s storage.Repository) http.HandlerFunc {
 	}
 }
 
-// RecoverAllURL gets history of your urls.
-func RecoverAllURL(s storage.Repository) http.HandlerFunc {
+// recoverAllURL gets history of your urls.
+func recoverAllURL(s storage.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userCookie, err := r.Cookie("userID")
 		if err != nil {
@@ -142,8 +142,8 @@ func RecoverAllURL(s storage.Repository) http.HandlerFunc {
 	}
 }
 
-// RecoverOriginalURL sends person to page, which url was shortened.
-func RecoverOriginalURL(s storage.Repository) http.HandlerFunc {
+// recoverOriginalURL sends person to page, which url was shortened.
+func recoverOriginalURL(s storage.Repository) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if id == "" {
@@ -170,8 +170,8 @@ func RecoverOriginalURL(s storage.Repository) http.HandlerFunc {
 	}
 }
 
-// RecoverOriginalURLPost creates new short OriginalURL.
-func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
+// recoverOriginalURLPost creates new short OriginalURL.
+func recoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 	cfg := s.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
 		var reqJSON entity.ReqJSON

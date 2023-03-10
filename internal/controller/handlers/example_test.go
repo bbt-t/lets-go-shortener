@@ -23,7 +23,7 @@ func ExampleRecoverOriginalURLPost() {
 		log.Fatal("Failed get storage")
 	}
 
-	h := RecoverOriginalURLPost(s)
+	h := recoverOriginalURLPost(s)
 
 	// Generating request.
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
@@ -63,7 +63,7 @@ func ExampleURLBatch() {
 		log.Fatal("Failed get storage")
 	}
 
-	h := URLBatch(s)
+	h := buildURLBatch(s)
 
 	// Generating request.
 	request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", strings.NewReader(body))
@@ -115,7 +115,7 @@ func ExampleRecoverAllURL() {
 		log.Fatal("Failed shorten OriginalURL")
 	}
 	// Generating handler.
-	h := RecoverAllURL(s)
+	h := recoverAllURL(s)
 
 	// Generating request.
 	request := httptest.NewRequest(http.MethodGet, "/api/user/urls", nil)
@@ -157,7 +157,7 @@ func ExampleDeleteURL() {
 		log.Fatal("Failed shorten OriginalURL")
 	}
 	// Generating handler.
-	h := DeleteURL(s)
+	h := deleteURL(s)
 
 	// Generating request.
 	req := httptest.NewRequest(

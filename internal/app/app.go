@@ -12,7 +12,7 @@ import (
 
 	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
 	"github.com/bbt-t/lets-go-shortener/internal/config"
-	"github.com/bbt-t/lets-go-shortener/internal/controller"
+	"github.com/bbt-t/lets-go-shortener/internal/controller/handlers"
 )
 
 // Run service.
@@ -22,7 +22,7 @@ func Run(cfg config.Config) {
 		log.Fatal(err)
 	}
 
-	server := controller.NewRouter(cfg.ServerAddress, s)
+	server := handlers.NewRouter(cfg.ServerAddress, s)
 	// Start server:
 	go func() {
 		log.Println(server.UP())
