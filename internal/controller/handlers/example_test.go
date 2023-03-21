@@ -48,6 +48,9 @@ func ExamplerecoverOriginalURLPost() {
 
 	log.Printf("Short OriginalURL is: %s\n", resBody)
 	log.Printf("Now in storage: %s\n", s.Locations)
+	// Output:
+	// Short URL is: http://127.0.0.1:8080/1
+	// Now in storage: map[1: https://yandex.ru]
 }
 
 func ExampleURLBatch() {
