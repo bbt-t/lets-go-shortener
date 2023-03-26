@@ -394,3 +394,22 @@ func TestGetFullURL(t *testing.T) {
 		})
 	}
 }
+
+func TestPingHandler(t *testing.T) {
+	request := httptest.NewRequest(http.MethodGet, "/ping", nil)
+	w := httptest.NewRecorder()
+	cfg := config.GetDefaultConfig()
+	s, err := storage.NewMapStorage(cfg)
+	assert.NoError(t, err)
+
+	h := Ping(s)
+	expiration := time.Now().Add(365 * 24 * time.Hour)
+	cookieString := "user12"
+	cookie := http.Cookie{Name: "userID", Value: cookieString, Expires: expiration, Path: "/"}
+	request.AddCookie(&cookie)
+	h.ServeHTTP(w, request)
+	res := w.Result()
+	defer res.Body.Close()
+
+	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
