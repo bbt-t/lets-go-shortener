@@ -4,6 +4,7 @@ package controller
 
 import (
 	"context"
+	"golang.org/x/crypto/acme/autocert"
 	"net/http"
 
 	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
@@ -19,7 +20,7 @@ type server struct {
 }
 
 // newHTTPServer Initializing a new router.
-func newHTTPServer(address string, s storage.Repository) *server {
+func newHTTPServer(address string, s storage.Repository, manager *autocert.Manager) *server {
 	router := chi.NewRouter()
 
 	router.Use(
@@ -43,15 +44,21 @@ func newHTTPServer(address string, s storage.Repository) *server {
 
 	return &server{
 		httpServer: &http.Server{
-			Addr:    address,
-			Handler: router,
+			Addr:      address,
+			Handler:   router,
+			TLSConfig: manager.TLSConfig(),
 		},
 	}
 }
 
-// UP http-server start.
-func (s *server) UP() error {
+// Start http-server start.
+func (s *server) Start() error {
 	return s.httpServer.ListenAndServe()
+}
+
+// StartTLS http-server start with TLS.
+func (s *server) StartTLS(certFile, keyFile string) error {
+	return s.httpServer.ListenAndServeTLS(certFile, keyFile)
 }
 
 // Stop http-server stop.
@@ -61,11 +68,12 @@ func (s *server) Stop(ctx context.Context) error {
 
 // HTTPServer - Router interface.
 type HTTPServer interface {
-	UP() error
+	Start() error
+	StartTLS(certFile, keyFile string) error
 	Stop(ctx context.Context) error
 }
 
 // NewRouter - make router.
-func NewRouter(address string, storage storage.Repository) HTTPServer {
-	return newHTTPServer(address, storage)
+func NewRouter(address string, storage storage.Repository, manager *autocert.Manager) HTTPServer {
+	return newHTTPServer(address, storage, manager)
 }
