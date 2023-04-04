@@ -11,6 +11,11 @@ import (
 
 func BenchmarkDBStorage(b *testing.B) {
 	cfg := config.GetConfig()
+	cfg.ChangeByPriority(config.GetBenchConfig())
+	if cfg.BasePath == "" {
+		log.Println("DB path is empty, skipping benchmark.")
+		return
+	}
 
 	if cfg.StoragePath == "" {
 		return

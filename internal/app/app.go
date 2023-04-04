@@ -4,7 +4,9 @@ package app
 
 import (
 	"context"
+	"golang.org/x/crypto/acme/autocert"
 	"log"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -17,15 +19,31 @@ import (
 
 // Run service.
 func Run(cfg config.Config) {
+	// Storage
 	s, err := storage.NewStorage(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server := controller.NewRouter(cfg.ServerAddress, s)
+	// TLS
+	baseURL, err := url.Parse(cfg.BaseURL)
+	if err != nil {
+		log.Fatalln(err)
+	}
+	manager := &autocert.Manager{
+		Cache:      autocert.DirCache("cache-dir"),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist(baseURL.Host),
+	}
+
+	server := controller.NewRouter(cfg.ServerAddress, s, manager)
 	// Start server:
 	go func() {
-		log.Println(server.UP())
+		if cfg.EnableHTTPS {
+			log.Println(server.StartTLS("", ""))
+		} else {
+			log.Println(server.Start())
+		}
 	}()
 	// Graceful shutdown:
 	gracefulStop := make(chan os.Signal, 1)
