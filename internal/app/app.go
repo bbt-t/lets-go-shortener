@@ -4,7 +4,6 @@ package app
 
 import (
 	"context"
-	"golang.org/x/crypto/acme/autocert"
 	"log"
 	"net/url"
 	"os"
@@ -15,6 +14,8 @@ import (
 	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
 	"github.com/bbt-t/lets-go-shortener/internal/config"
 	"github.com/bbt-t/lets-go-shortener/internal/controller"
+
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // Run service.
@@ -24,7 +25,6 @@ func Run(cfg config.Config) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	// TLS
 	baseURL, err := url.Parse(cfg.BaseURL)
 	if err != nil {
@@ -35,9 +35,9 @@ func Run(cfg config.Config) {
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist(baseURL.Host),
 	}
-
+	// New router
 	server := controller.NewRouter(cfg.ServerAddress, s, manager)
-	// Start server:
+	// Start server
 	go func() {
 		if cfg.EnableHTTPS {
 			log.Println(server.StartTLS("", ""))
@@ -45,7 +45,7 @@ func Run(cfg config.Config) {
 			log.Println(server.Start())
 		}
 	}()
-	// Graceful shutdown:
+	// Graceful shutdown
 	gracefulStop := make(chan os.Signal, 1)
 	signal.Notify(gracefulStop, os.Interrupt, syscall.SIGTERM, syscall.SIGQUIT)
 	<-gracefulStop

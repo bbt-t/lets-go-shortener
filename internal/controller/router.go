@@ -4,7 +4,6 @@ package controller
 
 import (
 	"context"
-	"golang.org/x/crypto/acme/autocert"
 	"net/http"
 
 	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 // server HTTP-server struct.
@@ -39,8 +39,8 @@ func newHTTPServer(address string, s storage.Repository, manager *autocert.Manag
 	router.Delete("/api/user/urls", handlers.DeleteURL(s))
 
 	router.Post("/", handlers.RecoverOriginalURLPost(s))
-	router.Post("/api/shorten/batch", handlers.URLBatch(s))
 	router.Post("/api/shorten", handlers.RecoverOriginalURLPost(s))
+	router.Post("/api/shorten/batch", handlers.URLBatch(s))
 
 	return &server{
 		httpServer: &http.Server{

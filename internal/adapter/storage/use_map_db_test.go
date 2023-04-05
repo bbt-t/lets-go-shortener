@@ -2,12 +2,12 @@ package storage
 
 import (
 	"errors"
-	"github.com/bbt-t/lets-go-shortener/internal/entity"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/bbt-t/lets-go-shortener/internal/config"
+	"github.com/bbt-t/lets-go-shortener/internal/entity"
 )
 
 func TestMapStorage_CreateShort(t *testing.T) {
@@ -145,6 +145,7 @@ func TestMapStorage_GetOriginal(t *testing.T) {
 
 func TestMapStorage_MarkAsDeleted(t *testing.T) {
 	cfg := config.GetTestConfig()
+
 	s, err := NewMapStorage(cfg)
 	assert.NoError(t, err)
 
@@ -204,6 +205,7 @@ func TestMapStorage_MarkAsDeleted(t *testing.T) {
 
 func TestMapStorage_GetURLArrayByUser(t *testing.T) {
 	cfg := config.GetTestConfig()
+
 	s, err := NewMapStorage(cfg)
 	assert.NoError(t, err)
 
@@ -280,6 +282,7 @@ func TestMapStorage_GetURLArrayByUser(t *testing.T) {
 
 func TestMapStorage_PingDB(t *testing.T) {
 	cfg := config.GetTestConfig()
+
 	s, err := NewMapStorage(cfg)
 	assert.NoError(t, err)
 
