@@ -15,15 +15,15 @@ import (
 
 // fileStorage struct of file storage.
 type fileStorage struct {
-	Cfg    config.Config
-	File   *os.File
-	LastID int
+	cfg    config.Config
+	file   *os.File
+	lastID int
 	*sync.Mutex
 }
 
 // GetConfig gets config.
 func (s *fileStorage) GetConfig() config.Config {
-	return s.Cfg
+	return s.cfg
 }
 
 // PingDB does nothing.
@@ -35,7 +35,7 @@ func (s *fileStorage) PingDB() error {
 func newFileStorage(cfg config.Config) (*fileStorage, error) {
 	var id int
 
-	s := &fileStorage{Cfg: cfg, Mutex: &sync.Mutex{}}
+	s := &fileStorage{cfg: cfg, Mutex: &sync.Mutex{}}
 
 	if cfg.StoragePath == "" {
 		return s, errors.New("empty file path")
@@ -49,7 +49,7 @@ func newFileStorage(cfg config.Config) (*fileStorage, error) {
 		return s, err
 	}
 
-	s.File = file
+	s.file = file
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		id++
@@ -58,7 +58,7 @@ func newFileStorage(cfg config.Config) (*fileStorage, error) {
 		return s, err
 	}
 
-	s.LastID = id
+	s.lastID = id
 
 	return s, nil
 }
@@ -70,22 +70,22 @@ func (s *fileStorage) CreateShort(userID string, urls ...string) ([]string, erro
 	s.Lock()
 	defer s.Unlock()
 
-	s.File.Seek(2, io.SeekEnd)
+	s.file.Seek(2, io.SeekEnd)
 
 	result := make([]string, 0, len(urls))
 
 	for _, original := range urls {
 		builder.WriteString(original)
 		builder.WriteRune('\n')
-		s.LastID++
-		result = append(result, fmt.Sprint(s.LastID))
+		s.lastID++
+		result = append(result, fmt.Sprint(s.lastID))
 	}
 
-	_, err := s.File.Write([]byte(builder.String()))
+	_, err := s.file.Write([]byte(builder.String()))
 	if err != nil {
 		return nil, err
 	}
-	err = s.File.Sync()
+	err = s.file.Sync()
 	if err != nil {
 		return nil, err
 	}
@@ -100,9 +100,9 @@ func (s *fileStorage) GetOriginal(id string) (string, error) {
 	s.Lock()
 	defer s.Unlock()
 
-	s.File.Seek(0, io.SeekStart)
+	s.file.Seek(0, io.SeekStart)
 
-	scanner := bufio.NewScanner(s.File)
+	scanner := bufio.NewScanner(s.file)
 
 	for scanner.Scan() {
 		i++
@@ -127,13 +127,13 @@ func (s *fileStorage) GetURLArrayByUser(_ string) ([]entity.URLs, error) {
 		allURLs []entity.URLs
 	)
 
-	scanner := bufio.NewScanner(s.File)
+	scanner := bufio.NewScanner(s.file)
 	for scanner.Scan() {
 		id++
 		original := scanner.Text()
 		allURLs = append(
 			allURLs, entity.URLs{
-				ShortURL:    fmt.Sprintf("%s/%v", s.Cfg.BaseURL, id),
+				ShortURL:    fmt.Sprintf("%s/%v", s.cfg.BaseURL, id),
 				OriginalURL: original,
 			},
 		)
