@@ -109,7 +109,7 @@ func GetTestConfig() Config {
 	return Config{
 		ServerAddress: ":8080",
 		BaseURL:       "http://127.0.0.1:8081",
-		StoragePath:   "file_storage.txt",
+		StoragePath:   "file_storage.db",
 		BasePath:      "mockedDB",
 		EnableHTTPS:   false,
 		GrpcPort:      ":3200",
