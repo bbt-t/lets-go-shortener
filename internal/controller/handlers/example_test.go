@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/bbt-t/lets-go-shortener/internal/usecase"
 	"io"
 	"log"
 	"net/http"
@@ -24,8 +25,9 @@ func ExampleRecoverOriginalURLPost() {
 	}
 
 	//h := RecoverOriginalURLPost(s)
-	handlers := NewService(cfg, s)
-	h := RecoverOriginalURLPostHandler(handlers)
+	service := usecase.NewShortenerService(cfg, s)
+	handlers := NewShortenerHandler(cfg, service)
+	h := RecoverOriginalURLPost(handlers)
 
 	// Generating request.
 	request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(body))
@@ -66,8 +68,9 @@ func ExampleURLBatch() {
 	}
 
 	//h := URLBatch(s)
-	handlers := NewService(cfg, s)
-	h := URLBatchHandler(handlers)
+	service := usecase.NewShortenerService(cfg, s)
+	handlers := NewShortenerHandler(cfg, service)
+	h := URLBatch(handlers)
 
 	// Generating request.
 	request := httptest.NewRequest(http.MethodPost, "/api/shorten/batch", strings.NewReader(body))
@@ -120,8 +123,9 @@ func ExampleRecoverAllURL() {
 	}
 	// Generating handler.
 	//h := RecoverAllURL(s)
-	handlers := NewService(cfg, s)
-	h := RecoverAllURLHandler(handlers)
+	service := usecase.NewShortenerService(cfg, s)
+	handlers := NewShortenerHandler(cfg, service)
+	h := RecoverAllURL(handlers)
 
 	// Generating request.
 	request := httptest.NewRequest(http.MethodGet, "/api/user/urls", nil)
@@ -148,6 +152,8 @@ func ExampleRecoverAllURL() {
 }
 
 func ExampleDeleteURL() {
+	cfg := config.GetDefaultConfig()
+
 	// data.
 	data, userID := `["1"]`, "user12cookie"
 	// generating storage.
@@ -164,8 +170,9 @@ func ExampleDeleteURL() {
 	}
 	// Generating handler.
 	//h := DeleteURL(s)
-	handlers := NewService(cfg, s)
-	h := DeleteHandler(handlers)
+	service := usecase.NewShortenerService(cfg, s)
+	handlers := NewShortenerHandler(cfg, service)
+	h := DeleteURL(handlers)
 
 	// Generating request.
 	req := httptest.NewRequest(
