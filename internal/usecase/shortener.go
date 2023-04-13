@@ -50,6 +50,7 @@ func (s ShortenerService) GetURLArrayByUser(userID string) ([]entity.URLs, error
 	return s.storage.GetURLArrayByUser(userID)
 }
 
+// PingDB for ping DataBase.
 func (s ShortenerService) PingDB() error {
 	return s.storage.PingDB()
 }
