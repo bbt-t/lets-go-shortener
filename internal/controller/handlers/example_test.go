@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"github.com/bbt-t/lets-go-shortener/internal/usecase"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
 	"github.com/bbt-t/lets-go-shortener/internal/config"
+	"github.com/bbt-t/lets-go-shortener/internal/usecase"
 )
 
 func ExampleRecoverOriginalURLPost() {
@@ -24,7 +24,6 @@ func ExampleRecoverOriginalURLPost() {
 		log.Fatal("Failed get storage")
 	}
 
-	//h := RecoverOriginalURLPost(s)
 	service := usecase.NewShortenerService(cfg, s)
 	handlers := NewShortenerHandler(cfg, service)
 	h := RecoverOriginalURLPost(handlers)
@@ -67,7 +66,6 @@ func ExampleURLBatch() {
 		log.Fatal("Failed get storage")
 	}
 
-	//h := URLBatch(s)
 	service := usecase.NewShortenerService(cfg, s)
 	handlers := NewShortenerHandler(cfg, service)
 	h := URLBatch(handlers)
@@ -122,7 +120,6 @@ func ExampleRecoverAllURL() {
 		log.Fatal("Failed shorten OriginalURL")
 	}
 	// Generating handler.
-	//h := RecoverAllURL(s)
 	service := usecase.NewShortenerService(cfg, s)
 	handlers := NewShortenerHandler(cfg, service)
 	h := RecoverAllURL(handlers)
@@ -169,7 +166,6 @@ func ExampleDeleteURL() {
 		log.Fatal("Failed shorten OriginalURL")
 	}
 	// Generating handler.
-	//h := DeleteURL(s)
 	service := usecase.NewShortenerService(cfg, s)
 	handlers := NewShortenerHandler(cfg, service)
 	h := DeleteURL(handlers)

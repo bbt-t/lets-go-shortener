@@ -4,9 +4,9 @@ package controller
 
 import (
 	"context"
-	"github.com/bbt-t/lets-go-shortener/internal/config"
 	"net/http"
 
+	"github.com/bbt-t/lets-go-shortener/internal/config"
 	"github.com/bbt-t/lets-go-shortener/internal/controller/handlers"
 
 	"github.com/go-chi/chi/v5"

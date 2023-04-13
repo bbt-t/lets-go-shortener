@@ -4,9 +4,6 @@ package app
 
 import (
 	"context"
-	"github.com/bbt-t/lets-go-shortener/internal/controller/handlers"
-	"github.com/bbt-t/lets-go-shortener/internal/usecase"
-
 	"log"
 	"net"
 	"net/url"
@@ -18,6 +15,9 @@ import (
 	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
 	"github.com/bbt-t/lets-go-shortener/internal/config"
 	"github.com/bbt-t/lets-go-shortener/internal/controller"
+	"github.com/bbt-t/lets-go-shortener/internal/controller/handlers"
+	"github.com/bbt-t/lets-go-shortener/internal/usecase"
+
 	"golang.org/x/crypto/acme/autocert"
 	"google.golang.org/grpc"
 )
@@ -41,18 +41,22 @@ func Run(cfg config.Config) {
 	}
 	// New service
 	service := usecase.NewShortenerService(cfg, s)
+
 	// New router
 	h := handlers.NewShortenerHandler(cfg, service)
+
 	// New server
 	server := controller.NewRouter(cfg, h, manager)
 
+	// Init TCP listener for gRPC
 	listen, err := net.Listen("tcp", cfg.GrpcPort)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error listening -> ", err)
 	}
-	// create gRPC-server without service
+	defer listen.Close()
+	// Create gRPC-server without service
 	grpcServ := grpc.NewServer()
-	// init gRPC service
+	// Init gRPC service
 	//pb.RegisterShortenerServer(grpcServ, handlers.NewShortenerServer(cfg, service))
 
 	go func() {
