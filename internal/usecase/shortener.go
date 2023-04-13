@@ -16,12 +16,13 @@ type Repository interface {
 	GetStatistic() (entity.Statistic, error)
 }
 
+// ShortenerService init struct
 type ShortenerService struct {
 	cfg     config.Config
 	storage Repository
 }
 
-// NewShortenerService gets new handlers service.
+// NewShortenerService gets new service.
 func NewShortenerService(cfg config.Config, s Repository) *ShortenerService {
 	return &ShortenerService{
 		cfg:     cfg,
