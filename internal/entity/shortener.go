@@ -24,3 +24,9 @@ type ReqJSON struct {
 type RespJSON struct {
 	Result string `json:"result"`
 }
+
+// Statistic struct for statistic which contains total shortened URLs number and users number.
+type Statistic struct {
+	Urls  int `json:"urls"`
+	Users int `json:"users"`
+}

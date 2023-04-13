@@ -8,15 +8,31 @@ import (
 	"net/http"
 
 	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
+	"github.com/bbt-t/lets-go-shortener/internal/config"
 	"github.com/bbt-t/lets-go-shortener/internal/entity"
+	"github.com/bbt-t/lets-go-shortener/internal/usecase"
 
 	"github.com/go-chi/chi/v5"
 )
 
+// ShortenerHandler struct for service layer.
+type ShortenerHandler struct {
+	cfg     config.Config
+	storage *usecase.ShortenerService
+}
+
+// NewShortenerHandler gets new handlers service.
+func NewShortenerHandler(cfg config.Config, s *usecase.ShortenerService) *ShortenerHandler {
+	return &ShortenerHandler{
+		cfg:     cfg,
+		storage: s,
+	}
+}
+
 // Ping DataBase.
-func Ping(s storage.Repository) http.HandlerFunc {
+func Ping(s *ShortenerHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := s.PingDB(); err != nil {
+		if err := s.storage.PingDB(); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
 		w.WriteHeader(http.StatusOK)
@@ -24,7 +40,7 @@ func Ping(s storage.Repository) http.HandlerFunc {
 }
 
 // DeleteURL deletes url from storage.
-func DeleteURL(s storage.Repository) http.HandlerFunc {
+func DeleteURL(s *ShortenerHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userCookie, err := r.Cookie("userID")
 		if err != nil {
@@ -46,7 +62,7 @@ func DeleteURL(s storage.Repository) http.HandlerFunc {
 			return
 		}
 
-		if err = s.MarkAsDeleted(userID, toDelete...); err != nil {
+		if err = s.storage.MarkAsDeleted(userID, toDelete...); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -55,8 +71,8 @@ func DeleteURL(s storage.Repository) http.HandlerFunc {
 }
 
 // URLBatch shortens batch of urls in single request.
-func URLBatch(s storage.Repository) http.HandlerFunc {
-	cfg := s.GetConfig()
+func URLBatch(s *ShortenerHandler) http.HandlerFunc {
+	cfg := s.storage.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
 		var (
 			reqURLs, respURLs []entity.URLBatch
@@ -86,7 +102,7 @@ func URLBatch(s storage.Repository) http.HandlerFunc {
 			urls = append(urls, v.OriginalURL)
 		}
 
-		res, err := s.CreateShort(userID, urls...)
+		res, err := s.storage.CreateShort(userID, urls...)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -115,7 +131,7 @@ func URLBatch(s storage.Repository) http.HandlerFunc {
 }
 
 // RecoverAllURL gets history of your urls.
-func RecoverAllURL(s storage.Repository) http.HandlerFunc {
+func RecoverAllURL(s *ShortenerHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userCookie, err := r.Cookie("userID")
 		if err != nil {
@@ -124,7 +140,7 @@ func RecoverAllURL(s storage.Repository) http.HandlerFunc {
 		}
 		userID := userCookie.Value
 
-		history, err := s.GetURLArrayByUser(userID)
+		history, err := s.storage.GetURLArrayByUser(userID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 		}
@@ -143,7 +159,7 @@ func RecoverAllURL(s storage.Repository) http.HandlerFunc {
 }
 
 // RecoverOriginalURL sends person to page, which url was shortened.
-func RecoverOriginalURL(s storage.Repository) http.HandlerFunc {
+func RecoverOriginalURL(s *ShortenerHandler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
 		if id == "" {
@@ -151,7 +167,7 @@ func RecoverOriginalURL(s storage.Repository) http.HandlerFunc {
 			return
 		}
 
-		url, err := s.GetOriginal(id)
+		url, err := s.storage.GetOriginal(id)
 		if errors.Is(err, storage.ErrDeleted) {
 			http.Error(w, "url is deleted", http.StatusGone)
 			return
@@ -171,8 +187,8 @@ func RecoverOriginalURL(s storage.Repository) http.HandlerFunc {
 }
 
 // RecoverOriginalURLPost creates new short OriginalURL.
-func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
-	cfg := s.GetConfig()
+func RecoverOriginalURLPost(s *ShortenerHandler) http.HandlerFunc {
+	cfg := s.storage.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
 		var reqJSON entity.ReqJSON
 
@@ -198,7 +214,7 @@ func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 					return
 				}
 
-				res, errCreate := s.CreateShort(userID, reqJSON.URL)
+				res, errCreate := s.storage.CreateShort(userID, reqJSON.URL)
 				if errCreate != nil && !errors.Is(errCreate, storage.ErrExists) {
 					http.Error(w, errCreate.Error(), http.StatusBadRequest)
 					return
@@ -220,7 +236,7 @@ func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 			}
 		default:
 			{
-				res, errCreate := s.CreateShort(userID, string(resBody))
+				res, errCreate := s.storage.CreateShort(userID, string(resBody))
 				if errCreate != nil && !errors.Is(errCreate, storage.ErrExists) {
 					http.Error(w, errCreate.Error(), 400)
 					return
@@ -234,5 +250,26 @@ func RecoverOriginalURLPost(s storage.Repository) http.HandlerFunc {
 				w.Write([]byte(cfg.BaseURL + "/" + res[0]))
 			}
 		}
+	}
+}
+
+// StatisticHandler returns total urls and users.
+func StatisticHandler(s *ShortenerHandler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		stats, err := s.storage.GetStatistic()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		data, err := json.Marshal(stats)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(data)
 	}
 }
