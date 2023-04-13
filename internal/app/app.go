@@ -53,7 +53,6 @@ func Run(cfg config.Config) {
 	if err != nil {
 		log.Fatal("Error listening -> ", err)
 	}
-	defer listen.Close()
 	// Create gRPC-server without service
 	grpcServ := grpc.NewServer()
 	// Init gRPC service
