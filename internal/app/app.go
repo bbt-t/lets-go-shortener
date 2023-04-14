@@ -4,6 +4,7 @@ package app
 
 import (
 	"context"
+	pb "github.com/bbt-t/lets-go-shortener/pkg/grpc"
 	"log"
 	"net"
 	"net/url"
@@ -56,7 +57,7 @@ func Run(cfg config.Config) {
 	// Create gRPC-server without service
 	grpcServ := grpc.NewServer()
 	// Init gRPC service
-	//pb.RegisterShortenerServer(grpcServ, handlers.NewShortenerServer(cfg, service))
+	pb.RegisterShortenerServer(grpcServ, handlers.NewShortenerServer(cfg, service))
 
 	go func() {
 		log.Println("-> Start gRPC service <-")

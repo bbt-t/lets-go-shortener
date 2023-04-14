@@ -278,3 +278,12 @@ func ShortURLs(s *usecase.ShortenerService, userID string, urlsJSON []entity.URL
 
 	return resultJSON, err
 }
+
+// ShortSingleURL shorts single url.
+func ShortSingleURL(s *usecase.ShortenerService, userID string, url string) (string, error) {
+	result, err := s.CreateShort(userID, url)
+	if len(result) == 0 {
+		return "", err
+	}
+	return result[0], err
+}
