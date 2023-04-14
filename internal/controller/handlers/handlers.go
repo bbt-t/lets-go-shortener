@@ -72,12 +72,8 @@ func DeleteURL(s *ShortenerHandler) http.HandlerFunc {
 
 // URLBatch shortens batch of urls in single request.
 func URLBatch(s *ShortenerHandler) http.HandlerFunc {
-	cfg := s.storage.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
-		var (
-			reqURLs, respURLs []entity.URLBatch
-			urls              []string
-		)
+		var reqURLs, respURLs []entity.URLBatch
 
 		userCookie, err := r.Cookie("userID")
 		if err != nil {
@@ -98,24 +94,10 @@ func URLBatch(s *ShortenerHandler) http.HandlerFunc {
 			return
 		}
 
-		for _, v := range reqURLs {
-			urls = append(urls, v.OriginalURL)
-		}
-
-		res, err := s.storage.CreateShort(userID, urls...)
+		respURLs, err = ShortURLs(s.storage, userID, reqURLs)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		for i, v := range reqURLs {
-			respURLs = append(
-				respURLs,
-				entity.URLBatch{
-					CorrelationID: v.CorrelationID,
-					ShortURL:      cfg.BaseURL + "/" + res[i], // не хочу импортировать fmt/strings/bytes
-				},
-			)
 		}
 
 		b, err := json.Marshal(respURLs)
@@ -188,7 +170,6 @@ func RecoverOriginalURL(s *ShortenerHandler) http.HandlerFunc {
 
 // RecoverOriginalURLPost creates new short OriginalURL.
 func RecoverOriginalURLPost(s *ShortenerHandler) http.HandlerFunc {
-	cfg := s.storage.GetConfig()
 	return func(w http.ResponseWriter, r *http.Request) {
 		var reqJSON entity.ReqJSON
 
@@ -220,7 +201,7 @@ func RecoverOriginalURLPost(s *ShortenerHandler) http.HandlerFunc {
 					return
 				}
 
-				respJSON, err := json.Marshal(entity.RespJSON{Result: cfg.BaseURL + "/" + res[0]})
+				respJSON, err := json.Marshal(entity.RespJSON{Result: s.cfg.BaseURL + "/" + res[0]})
 				if err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
@@ -247,7 +228,7 @@ func RecoverOriginalURLPost(s *ShortenerHandler) http.HandlerFunc {
 				} else {
 					w.WriteHeader(http.StatusCreated)
 				}
-				w.Write([]byte(cfg.BaseURL + "/" + res[0]))
+				w.Write([]byte(s.cfg.BaseURL + "/" + res[0]))
 			}
 		}
 	}
@@ -272,4 +253,28 @@ func StatisticHandler(s *ShortenerHandler) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 		w.Write(data)
 	}
+}
+
+// ShortURLs shorts many urls.
+func ShortURLs(s *usecase.ShortenerService, userID string, urlsJSON []entity.URLBatch) ([]entity.URLBatch, error) {
+	urls := make([]string, len(urlsJSON))
+	resultJSON := make([]entity.URLBatch, len(urlsJSON))
+
+	for i := range urlsJSON {
+		urls[i] = urlsJSON[i].OriginalURL
+	}
+
+	result, err := s.CreateShort(userID, urls...)
+	if err != nil && err != storage.ErrExists {
+		return nil, err
+	}
+
+	for i, v := range urlsJSON {
+		resultJSON[i] = entity.URLBatch{
+			CorrelationID: v.CorrelationID,
+			ShortURL:      s.GetConfig().BaseURL + "/" + result[i],
+		}
+	}
+
+	return resultJSON, err
 }
