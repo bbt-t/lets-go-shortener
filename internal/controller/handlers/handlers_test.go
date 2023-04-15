@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"github.com/bbt-t/lets-go-shortener/internal/entity"
+	"github.com/bbt-t/lets-go-shortener/internal/usecase"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -92,10 +95,14 @@ func TestURLPostHandler(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.url))
+
 			w := httptest.NewRecorder()
-			cfg := config.GetDefaultConfig()
-			tc.urls.Cfg = cfg
-			h := RecoverOriginalURLPost(tc.urls)
+			tc.urls.Cfg = config.GetDefaultConfig()
+
+			service := usecase.NewShortenerService(tc.urls.Cfg, tc.urls)
+			handlers := NewShortenerHandler(tc.urls.Cfg, service)
+			h := RecoverOriginalURLPost(handlers)
+
 			cookie := http.Cookie{
 				Name:    "userID",
 				Value:   "123456",
@@ -195,10 +202,14 @@ func TestURLPostJSONHandler(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			request := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(tc.url))
 			request.Header.Set("Content-Type", "application/json")
+
 			w := httptest.NewRecorder()
-			cfg := config.GetDefaultConfig()
-			tc.urls.Cfg = cfg
-			h := RecoverOriginalURLPost(tc.urls)
+			tc.urls.Cfg = config.GetDefaultConfig()
+
+			service := usecase.NewShortenerService(tc.urls.Cfg, tc.urls)
+			handlers := NewShortenerHandler(tc.urls.Cfg, service)
+			h := RecoverOriginalURLPost(handlers)
+
 			cookie := http.Cookie{
 				Name:    "userID",
 				Value:   "123456",
@@ -267,11 +278,15 @@ func TestURLGetHandler(t *testing.T) {
 			rctx.URLParams.Add("id", tc.id)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
-			cfg := config.GetDefaultConfig()
-			tc.urls.Cfg = cfg
-			h := RecoverOriginalURL(tc.urls)
+			tc.urls.Cfg = config.GetDefaultConfig()
+
+			service := usecase.NewShortenerService(tc.urls.Cfg, tc.urls)
+			handlers := NewShortenerHandler(tc.urls.Cfg, service)
+			h := RecoverOriginalURL(handlers)
+
 			h.ServeHTTP(w, request)
 			res := w.Result()
+
 			assert.Equal(t, tc.want.code, res.StatusCode)
 			resBody, err := io.ReadAll(res.Body)
 			defer res.Body.Close()
@@ -402,14 +417,80 @@ func TestPingHandler(t *testing.T) {
 	s, err := storage.NewMapStorage(cfg)
 	assert.NoError(t, err)
 
-	h := Ping(s)
-	expiration := time.Now().Add(365 * 24 * time.Hour)
-	cookieString := "user12"
-	cookie := http.Cookie{Name: "userID", Value: cookieString, Expires: expiration, Path: "/"}
+	service := usecase.NewShortenerService(cfg, s)
+	handlers := NewShortenerHandler(cfg, service)
+
+	h := Ping(handlers)
+
+	cookie := http.Cookie{
+		Name:    "userID",
+		Value:   "user12",
+		Expires: time.Now().Add(365 * 24 * time.Hour),
+		Path:    "/",
+	}
 	request.AddCookie(&cookie)
 	h.ServeHTTP(w, request)
 	res := w.Result()
 	defer res.Body.Close()
 
 	assert.Equal(t, http.StatusOK, res.StatusCode)
+}
+
+func TestService_GetStatistic(t *testing.T) {
+	request := httptest.NewRequest("GET", "/api/internal/stats", nil)
+	w := httptest.NewRecorder()
+	cfg := config.GetTestConfig()
+	s, err := storage.NewMapStorage(cfg)
+
+	assert.NoError(t, err)
+	assert.NoError(t, err)
+
+	service := usecase.NewShortenerService(cfg, s)
+	handlers := NewShortenerHandler(cfg, service)
+
+	h := StatisticHandler(handlers)
+	h.ServeHTTP(w, request)
+
+	result := w.Result()
+	assert.Equal(t, http.StatusOK, result.StatusCode)
+	defer result.Body.Close()
+
+	check := entity.Statistic{}
+
+	bytes, err := io.ReadAll(result.Body)
+	assert.NoError(t, err)
+
+	err = json.Unmarshal(bytes, &check)
+	assert.NoError(t, err)
+	assert.Equal(t, entity.Statistic{
+		Urls:  0,
+		Users: 0,
+	}, check)
+
+	// adding url to storage.
+	_, err = s.CreateShort("user12", "https://yandex.ru")
+	assert.NoError(t, err)
+
+	w = httptest.NewRecorder()
+
+	h.ServeHTTP(w, request)
+
+	result = w.Result()
+	assert.Equal(t, http.StatusOK, result.StatusCode)
+	defer result.Body.Close()
+
+	check = entity.Statistic{}
+
+	bytes, err = io.ReadAll(result.Body)
+	assert.NoError(t, err)
+
+	t.Log(string(bytes))
+
+	err = json.Unmarshal(bytes, &check)
+	assert.NoError(t, err)
+	assert.Equal(t, entity.Statistic{
+		Urls:  1,
+		Users: 1,
+	}, check)
+
 }

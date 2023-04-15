@@ -140,3 +140,11 @@ func (s *fileStorage) GetURLArrayByUser(_ string) ([]entity.URLs, error) {
 	}
 	return allURLs, scanner.Err()
 }
+
+// GetStatistic gets total count of users and urls.
+func (s *fileStorage) GetStatistic() (entity.Statistic, error) {
+	return entity.Statistic{
+		Urls:  s.lastID,
+		Users: 0,
+	}, nil
+}
