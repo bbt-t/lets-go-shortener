@@ -15,6 +15,7 @@ type Repository interface {
 	GetURLArrayByUser(userID string) ([]entity.URLs, error)
 	PingDB() error
 	GetConfig() config.Config
+	GetStatistic() (entity.Statistic, error)
 }
 
 // NewStorage creates new storage based on config.

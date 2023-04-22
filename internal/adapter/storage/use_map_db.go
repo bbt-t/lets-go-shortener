@@ -122,3 +122,11 @@ func (s *MapStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
 	}
 	return history, nil
 }
+
+// GetStatistic gets total count of users and urls.
+func (s *MapStorage) GetStatistic() (entity.Statistic, error) {
+	return entity.Statistic{
+		Urls:  len(s.Locations),
+		Users: len(s.Users),
+	}, nil
+}

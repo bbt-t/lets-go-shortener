@@ -187,3 +187,24 @@ func (s *dbStorage) GetURLArrayByUser(userID string) ([]entity.URLs, error) {
 
 	return history, nil
 }
+
+// GetStatistic gets total count of users and urls.
+func (s *dbStorage) GetStatistic() (entity.Statistic, error) {
+	stat := entity.Statistic{
+		Urls: s.lastID,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	row := s.db.QueryRowContext(ctx, "SELECT COUNT(DISTINCT cookie) FROM items;")
+
+	err := row.Scan(&stat.Users)
+	if err != nil {
+		return stat, err
+	}
+	if err := row.Err(); err != nil {
+		return stat, err
+	}
+	return stat, nil
+}

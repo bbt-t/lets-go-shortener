@@ -6,7 +6,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bbt-t/lets-go-shortener/internal/adapter/storage"
+	"github.com/bbt-t/lets-go-shortener/internal/config"
 	"github.com/bbt-t/lets-go-shortener/internal/controller/handlers"
 
 	"github.com/go-chi/chi/v5"
@@ -20,9 +20,8 @@ type server struct {
 }
 
 // newHTTPServer Initializing a new router.
-func newHTTPServer(address string, s storage.Repository, manager *autocert.Manager) *server {
+func newHTTPServer(cfg config.Config, s *handlers.ShortenerHandler, manager *autocert.Manager) *server {
 	router := chi.NewRouter()
-
 	router.Use(
 		middleware.RealIP, // <- (!) Only if a reverse proxy is used (e.g. nginx) (!)
 		middleware.Logger,
@@ -42,9 +41,14 @@ func newHTTPServer(address string, s storage.Repository, manager *autocert.Manag
 	router.Post("/api/shorten", handlers.RecoverOriginalURLPost(s))
 	router.Post("/api/shorten/batch", handlers.URLBatch(s))
 
+	router.Group(func(r chi.Router) {
+		r.Use(handlers.NewIPPermissionsChecker(cfg))
+		r.Get("/api/internal/stats", handlers.StatisticHandler(s))
+	})
+
 	return &server{
 		httpServer: &http.Server{
-			Addr:      address,
+			Addr:      cfg.ServerAddress,
 			Handler:   router,
 			TLSConfig: manager.TLSConfig(),
 		},
@@ -74,6 +78,6 @@ type HTTPServer interface {
 }
 
 // NewRouter - make router.
-func NewRouter(address string, storage storage.Repository, manager *autocert.Manager) HTTPServer {
-	return newHTTPServer(address, storage, manager)
+func NewRouter(cfg config.Config, s *handlers.ShortenerHandler, manager *autocert.Manager) HTTPServer {
+	return newHTTPServer(cfg, s, manager)
 }
