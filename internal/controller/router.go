@@ -42,7 +42,7 @@ func newHTTPServer(cfg config.Config, s *handlers.ShortenerHandler, manager *aut
 	router.Post("/api/shorten/batch", handlers.URLBatch(s))
 
 	router.Group(func(r chi.Router) {
-		r.Use(handlers.NewIPPermissionsChecker(cfg))
+		r.Use(handlers.NewIPPermissionsChecker(cfg.TrustedSubnet))
 		r.Get("/api/internal/stats", handlers.StatisticHandler(s))
 	})
 

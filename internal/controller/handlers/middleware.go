@@ -13,8 +13,6 @@ import (
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/bbt-t/lets-go-shortener/internal/config"
 )
 
 // compress response.
@@ -133,10 +131,11 @@ func GzipHandle(next http.Handler) http.Handler {
 }
 
 // NewIPPermissionsChecker checks if user can get statistic.
-func NewIPPermissionsChecker(cfg config.Config) func(handler http.Handler) http.Handler {
+func NewIPPermissionsChecker(trustedSubnet string) func(handler http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if cfg.TrustedSubnet == "" {
+			if trustedSubnet == "" {
+				log.Println("TrustedSubnet is empty")
 				http.Error(w, "403 Forbidden", http.StatusForbidden)
 				return
 			}
@@ -149,7 +148,7 @@ func NewIPPermissionsChecker(cfg config.Config) func(handler http.Handler) http.
 			}
 
 			IP := net.ParseIP(realIP)
-			_, subnet, err := net.ParseCIDR(cfg.TrustedSubnet)
+			_, subnet, err := net.ParseCIDR(trustedSubnet)
 
 			if err != nil {
 				http.Error(w, "internal server error", http.StatusInternalServerError)

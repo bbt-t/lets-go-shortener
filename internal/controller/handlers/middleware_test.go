@@ -63,7 +63,7 @@ func TestNewIPPermissionsChecker(t *testing.T) {
 		assert.Error(t, errors.New("shouldn't process this request"))
 	})
 
-	NewIPPermissionsChecker(cfg)(next).ServeHTTP(w, request)
+	NewIPPermissionsChecker(cfg.TrustedSubnet)(next).ServeHTTP(w, request)
 
 	cfg.TrustedSubnet = "127.0.0.1/24"
 
@@ -75,7 +75,7 @@ func TestNewIPPermissionsChecker(t *testing.T) {
 		assert.Error(t, errors.New("shouldn't process this request"))
 	}
 
-	NewIPPermissionsChecker(cfg)(next).ServeHTTP(w, request)
+	NewIPPermissionsChecker(cfg.TrustedSubnet)(next).ServeHTTP(w, request)
 
 	request = httptest.NewRequest(http.MethodGet, "/api/internal/stats", nil)
 	request.Header.Set("X-Real-IP", "127.0.0.1")
@@ -87,7 +87,7 @@ func TestNewIPPermissionsChecker(t *testing.T) {
 		nextWasCalled = true
 	}
 
-	NewIPPermissionsChecker(cfg)(next).ServeHTTP(w, request)
+	NewIPPermissionsChecker(cfg.TrustedSubnet)(next).ServeHTTP(w, request)
 
 	assert.Equal(t, true, nextWasCalled)
 }
